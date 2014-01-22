@@ -81,7 +81,12 @@ class Box extends Widget{
                 if( Std.is(obj, Widget) ){
                     return cast(obj, Widget).h;
                 }else if( Std.is(obj, flash.text.TextField) ){
-                    return cast(obj, flash.text.TextField).textHeight + 4;
+                    var textHeight = cast(obj, flash.text.TextField).textHeight;
+                    #if cpp
+                        return textHeight - textHeight / 6;
+                    #else
+                        return textHeight;
+                    #end
                 }else{
                     return obj.height;
                 }
