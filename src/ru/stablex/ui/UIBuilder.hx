@@ -59,6 +59,9 @@ class UIBuilder {
     * @return - valid haxe code to inject in generated code
     */
     static public var meta : Hash<Xml->String->String> = new Hash();
+
+    static public var scalingCallback : String = null;
+
 #end
 
 
@@ -419,6 +422,7 @@ class UIBuilder {
                 attr  = StringTools.replace(attr, '-', '.');
                 //required code replacements
                 value = UIBuilder.fillCodeShortcuts(obj, value);
+                value = UIBuilder.applyScalingCallback(obj, value, element.nodeName, attr);
                 code += '\n' + obj + '.' + attr + ' = ' + value + ';';
             }
         }//while( attributes.length )
@@ -465,8 +469,11 @@ class UIBuilder {
 
                 //replace remaining `-`-chars
                 attr = StringTools.replace(attr, '-', '.');
+                var value = element.get(post[i]);
+                value = UIBuilder.fillCodeShortcuts(obj, value);
+                value = UIBuilder.applyScalingCallback(obj, value, element.nodeName, attr);
 
-                code += '\n' + attr + ' = ' + UIBuilder.fillCodeShortcuts(obj, element.get(post[i])) + ';';
+                code += '\n' + attr + ' = ' + value + ';';
             }//for( post )
         }//if( post.length > 0 )
 
@@ -491,6 +498,8 @@ class UIBuilder {
         var castId = UIBuilder._erCastId;
         var arg    = UIBuilder._erCodeArg;
         var erThis = UIBuilder._erThis;
+
+        var origCode = code;
 
         //this
         while( erThis.match(code) ){
@@ -527,8 +536,31 @@ class UIBuilder {
         code = StringTools.replace(code, "$$", "$");
         code = StringTools.replace(code, "@@", "@");
 
+        //no replacement took place, value might be numeric literal -> check for scaling
+
+
         return code;
     }//function fillCodeShortcuts()
+
+
+    /**
+    * Calls callback if setfor float literals:
+    * @private
+    */
+    @:noCompletion static public function applyScalingCallback(thisObj : String, code : String, cls : String, attrName : String) : String {
+        // trace(cls);
+        if (scalingCallback == null) {
+            return code;
+        }
+        var attrType = attrName.split(".").pop();
+        var numValue = Std.parseFloat(code);
+        if (!Math.isNaN(numValue) && !StringTools.startsWith(code, '0x') && !StringTools.endsWith(attrType, 'Pt')) {
+            code = '${scalingCallback}(${thisObj}, ${code}, "${cls}", "${attrName}", "${attrType}")';
+            trace(code);
+        }
+        return code;
+    }//function applyScalingCallback()
+
 
 
     /**
@@ -754,6 +786,11 @@ class UIBuilder {
         return UIBuilder._parse(xmlFile, code);
     }//function regSkins()
 
+
+    macro static public function regScalingCallback(cb : String) {
+        scalingCallback = cb;
+        return Context.parse("true", Context.currentPos());
+    }
 
     /**
     * Create class for custom widget based on xml markup

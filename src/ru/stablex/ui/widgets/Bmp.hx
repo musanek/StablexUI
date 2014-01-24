@@ -17,6 +17,8 @@ class Bmp extends Widget{
     @:noCompletion public var _src : String = null;
     //Should we use smoothing?
     public var smooth : Bool = true;
+    /** keep aspect ratio */
+    public var keepAspect : Bool = false;    
     //set size depending on bitmap size
     public var autoSize (never,set_autoSize) : Bool;
     //set width depending on bitmap width
@@ -37,9 +39,9 @@ class Bmp extends Widget{
     * width and height will be taken from `.xOffset` and `.yOffset` to bitmap right border
     * and bottom border respectively
     */
-    public var xOffset (default, set_xOffset) : Int = 0;
+    public var xOffset (default, set_xOffset) = 0.0;
     // y offset for drawing a portion of the bitmap
-    public var yOffset (default, set_yOffset) : Int = 0;
+    public var yOffset (default, set_yOffset) = 0.0;
     /**
     * When `.xOffset` or `.yOffset` is set, this property is changed to true.
     * To draw full image on next refresh set this property to false again.
@@ -49,8 +51,6 @@ class Bmp extends Widget{
 /*******************************************************************************
 *       STATIC METHODS
 *******************************************************************************/
-
-
 
 /*******************************************************************************
 *       INSTANCE METHODS
@@ -72,19 +72,15 @@ class Bmp extends Widget{
         }
 
         if( bmp != null ){
+            var w = this.drawPortion? bmp.width - this.xOffset : bmp.width;
+            var h = this.drawPortion? bmp.height - this.yOffset : bmp.height;
             //handle auto size
-            if(
-                this.autoWidth && this.autoHeight
-                && (
-                    this._width != (this.drawPortion ? bmp.width - this.xOffset : bmp.width)
-                    || this._height != (this.drawPortion ? bmp.height - this.yOffset : bmp.height)
-                )
-            ){
+            if (this.autoWidth && this.autoHeight && (this._width != w  || this._height != h)) {
                 this.resize(bmp.width, bmp.height);
-            }else if( this.autoWidth && this._width != (this.drawPortion ? bmp.width - this.xOffset : bmp.width) ){
-                this.w = (this.drawPortion ? bmp.width - this.xOffset : bmp.width);
-            }else if( this.autoHeight && this._height != (this.drawPortion ? bmp.height - this.yOffset : bmp.height) ){
-                this.h = (this.drawPortion ? bmp.height - this.yOffset : bmp.height);
+            } else if (this.autoWidth && this._width != w) {
+                this.w = w;
+            } else if(this.autoHeight && this._height != h) {
+                this.h = h;
             }
 
             super.refresh();
@@ -101,47 +97,53 @@ class Bmp extends Widget{
     *
     * @throw <type>String</type> if asset for bitmap was not found
     */
-    private inline function _draw(bmp:BitmapData) : Void {
+    private inline function _draw(bmp:BitmapData) {
         this.graphics.clear();
+
+        var mx : Matrix = new Matrix();
+        var width = bmp.width;
+        var height = bmp.height;
 
         //draw just part of image
         if( this.drawPortion ){
-            var width : Float = (
-                this.autoWidth
-                    ? bmp.width
-                    : (this._width > bmp.width - this.xOffset ? bmp.width - this.xOffset : this._width)
-            );
-            var height : Float = (
-                this.autoHeight
-                    ? bmp.height
-                    : (this._height > bmp.height - this.yOffset ? bmp.height - this.yOffset : Std.int(this._height))
-            );
+            width -= Std.int(this.xOffset);
+            height -= Std.int(this.yOffset);
 
             //draw zero?
-            if( width <= 0 || height <= 0 ){
-                return;
-            }else{
-
-                var mx : Matrix = new Matrix();
-                #if !html5
-                    mx.translate(-this.xOffset, -this.yOffset);
-                #else
+            if( width > 0 && height > 0 ){
+                #if html5
                     var dest = new BitmapData(Std.int(width), Std.int(height));
                     dest.copyPixels(bmp, new Rectangle(this.xOffset, this.yOffset, width, height), new Point(0, 0));
-                    bmp = dest;
+                    bmp = dest;                
+                #else
+                    mx.translate(-this.xOffset, -this.yOffset);
                 #end
+            }
+        }
 
-                this.graphics.beginBitmapFill(bmp, mx, false, this.smooth);
-                this.graphics.drawRect(0, 0, width, height);
-                this.graphics.endFill();
+        if( width > 0 && height > 0 ) {
+            // this.graphics.beginBitmapFill(bmp, null, false, this.smooth);
+            // this.graphics.drawRect(0, 0, bmp.width, bmp.height);
+            // this.graphics.endFill();
+
+            //if autoSizing, this will be 1 so it is ok keep it simple
+            var scaleX = this.w / width;
+            var scaleY = this.h / height;            
+
+            if (keepAspect) {
+                var scale : Float = Math.min(scaleX, scaleY);
+                mx.scale(scale, scale);
+            } else { //distort
+                mx.scale(scaleX, scaleY);
             }
 
-        //draw full image
-        }else{
-            this.graphics.beginBitmapFill(bmp, null, false, this.smooth);
-            this.graphics.drawRect(0, 0, bmp.width, bmp.height);
+            this.graphics.beginBitmapFill(bmp, mx, false, this.smooth);
+            this.graphics.drawRect(0, 0, width * mx.a, height * mx.d);
             this.graphics.endFill();
         }
+
+        
+
     }//function _draw()
 
 
@@ -205,7 +207,7 @@ class Bmp extends Widget{
     * Setter for autoSize
     *
     */
-    @:noCompletion private function set_xOffset (x:Int) : Int {
+    @:noCompletion private function set_xOffset (x:Float) : Float {
         this.drawPortion = true;
         return this.xOffset = (x >= 0 ? x : 0);
     }//function set_xOffset()
@@ -214,7 +216,7 @@ class Bmp extends Widget{
     * Setter for autoSize
     *
     */
-    @:noCompletion private function set_yOffset (y:Int) : Int {
+    @:noCompletion private function set_yOffset (y:Float) : Float {
         this.drawPortion = true;
         return this.yOffset = (y >= 0 ? y : 0);
     }//function set_yOffset()
