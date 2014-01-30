@@ -556,7 +556,6 @@ class UIBuilder {
         var numValue = Std.parseFloat(code);
         if (!Math.isNaN(numValue) && !StringTools.startsWith(code, '0x') && !StringTools.endsWith(attrType, 'Pt')) {
             code = '${scalingCallback}(${thisObj}, ${code}, "${cls}", "${attrName}", "${attrType}")';
-            trace(code);
         }
         return code;
     }//function applyScalingCallback()
