@@ -34,6 +34,8 @@ class Scroll extends Widget{
     public var hScroll : Bool = true;
     //allow scrolling by mouse wheel
     public var wheelScroll : Bool = true;
+    //allow scrolling finish animation
+    public var dynamicScroll : Bool = true;
     /**
     * Modifier to scroll horizontally instead of vertically, when using mouse wheel
     * Possible values: shift, alt, ctrl
@@ -64,6 +66,8 @@ class Scroll extends Widget{
     * We want to process it only once
     */
     private var _processingDrag : Bool = false;
+    private var _stopFn : MouseEvent->Void = null;
+
 
 
     /**
@@ -211,6 +215,17 @@ class Scroll extends Widget{
 
 
     /**
+    * Stop scrolling
+    *
+    */
+    public function stopScrolling() : Void {
+        if (_stopFn != null) {
+            _stopFn(null);
+            tweenStop();
+        }
+    }//function refresh()
+
+    /**
     * Update bars, scrollX/scrollY etc.
     *
     */
@@ -349,6 +364,7 @@ class Scroll extends Widget{
         //follow mouse pointer
         var fn = function(e:Event) : Void {
             if( scrolled ){
+                trace('${this.mouseX},${this.mouseY}');
                 if( hScroll ) this.scrollX = this.mouseX - dx;
                 if( vScroll ) this.scrollY = this.mouseY - dy;
 
@@ -379,6 +395,7 @@ class Scroll extends Widget{
         var fnStop : MouseEvent->Void = null;
         fnStop = function(e:MouseEvent) : Void {
             this._processingDrag = false;
+            this._stopFn = null;
 
             this.removeEventListener(Event.ENTER_FRAME, fn);
             Lib.current.stage.removeEventListener(MouseEvent.MOUSE_UP, fnStop);
@@ -389,7 +406,9 @@ class Scroll extends Widget{
                 };
 
                 //go-go!
-                if( vScroll && hScroll ){
+                if (!dynamicScroll) {
+                    finish();
+                } else if( vScroll && hScroll ){
                     this.tween(2, {scrollX:this.scrollX + lastDx * 20, scrollY:this.scrollY + lastDy * 20}, 'Expo.easeOut').onComplete(finish);
                 }else if( vScroll ){
                     this.tween(2, {scrollY:this.scrollY + lastDy * 20}, 'Expo.easeOut').onComplete(finish);
@@ -404,6 +423,7 @@ class Scroll extends Widget{
         }//fnStop()
 
         //stop scrolling
+        _stopFn = fnStop;
         Lib.current.stage.removeEventListener(MouseEvent.MOUSE_UP, fnStop);
         Lib.current.stage.addEventListener(MouseEvent.MOUSE_UP, fnStop);
     }//function _dragScroll()

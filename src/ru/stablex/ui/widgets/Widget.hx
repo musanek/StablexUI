@@ -115,8 +115,14 @@ class Widget extends TweenSprite{
     //Tooltip for this widget. See <type>Tip</type> to know how to use it.
     public var tip (default,set_tip) : Tip;
 
+    public var register(default, set_register) : Int;
+
     //layout manager
     public var layout : Layout;
+
+    //custom values
+    public var intVal = 0;
+    public var strVar = "";    
 
 
 /*******************************************************************************
@@ -203,6 +209,8 @@ class Widget extends TweenSprite{
 
         //remove reference from UIBuilder
         UIBuilder.forget(this.id);
+        UIBuilder.objRegister.remove(this);
+
     }//function free()
 
 
@@ -975,5 +983,16 @@ class Widget extends TweenSprite{
         tip.bindTo(this);
         return this.tip = tip;
     }//function set_tip()
+
+    /**
+    * Register setter
+    *
+    */
+    @:noCompletion private function set_register(reg : Int) {
+        register = reg;
+        UIBuilder.objRegister.push(this);
+        return reg;
+    }//function set_tip()
+
 
 }//class Widget

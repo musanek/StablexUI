@@ -62,7 +62,9 @@ class Button extends Text{
             btn._switchIco(btn._icoHovered);
 
             //switch skin
-            btn._switchSkin(btn.skinHovered);
+            if (btn.skinHovered != null) {
+                btn._switchSkin(btn.skinHovered);    
+            }
 
             btn.hovered = true;
             btn.onHover(e);

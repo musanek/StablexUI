@@ -75,6 +75,8 @@ class UIBuilder {
     //Widgets created with UIBuilder.buildFn() or UIBuilder.create()
     static private var _objects : Hash<Widget> = new Hash();
 
+    static public var objRegister = new Array<Widget>();
+
     //registered skins
     static public var skins : Hash<Void->Skin> = new Hash();
 
