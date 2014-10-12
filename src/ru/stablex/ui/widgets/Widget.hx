@@ -122,7 +122,7 @@ class Widget extends TweenSprite{
 
     //custom values
     public var intVal = 0;
-    public var strVar = "";    
+    public var strVar = "";
 
 
 /*******************************************************************************

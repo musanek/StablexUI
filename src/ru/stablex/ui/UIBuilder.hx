@@ -132,11 +132,19 @@ class UIBuilder {
         if( defaultsXmlFile != null ){
             var root : Xml = Xml.parse( File.getContent(Context.resolvePath(defaultsXmlFile)) ).firstElement();
             for(widget in root.elements()){
-                code += '\nif( !ru.stablex.ui.UIBuilder.defaults.exists("' + widget.nodeName + '") ) ru.stablex.ui.UIBuilder.defaults.set("' + widget.nodeName + #if haxe3 '", new Map());' #else '", new Hash());' #end;
-                for(node in widget.elements()){
-                    code += '\nru.stablex.ui.UIBuilder.defaults.get("' + widget.nodeName + '").set("' + node.nodeName + '", function(__ui__widget0:ru.stablex.ui.widgets.Widget) : Void {';
-                    code += UIBuilder.construct(node, 1, widget.nodeName);
-                    code += '\n});';
+                var elemNames = new Array<String>();
+                elemNames.push(widget.nodeName);
+                var applies = widget.get('applyTo');
+                if (applies != null) {
+                    elemNames = elemNames.concat(applies.split(','));
+                }
+                for (elemName in elemNames) {
+                    code += '\nif( !ru.stablex.ui.UIBuilder.defaults.exists("' + elemName + '") ) ru.stablex.ui.UIBuilder.defaults.set("' + elemName + #if haxe3 '", new Map());' #else '", new Hash());' #end;
+                    for(node in widget.elements()){
+                        code += '\nru.stablex.ui.UIBuilder.defaults.get("' + elemName + '").set("' + node.nodeName + '", function(__ui__widget0:ru.stablex.ui.widgets.Widget) : Void {';
+                        code += UIBuilder.construct(node, 1, elemName);
+                        code += '\n});';
+                    }
                 }
             }
         }

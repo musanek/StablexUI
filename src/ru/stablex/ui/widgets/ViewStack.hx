@@ -110,6 +110,11 @@ class ViewStack extends Widget{
         }
     }//function show()
 
+    public function changeTo(name:String, cb:Void->Void = null, ignoreHistory:Bool = false) : Void {
+        var tmp = this.trans;
+        show(name, cb, ignoreHistory);
+        this.trans = tmp;
+    }
 
     /**
     * Show element wich was visible previously.

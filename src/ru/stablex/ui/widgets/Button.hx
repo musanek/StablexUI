@@ -63,7 +63,7 @@ class Button extends Text{
 
             //switch skin
             if (btn.skinHovered != null) {
-                btn._switchSkin(btn.skinHovered);    
+                btn._switchSkin(btn.skinHovered);
             }
 
             btn.hovered = true;
@@ -110,6 +110,10 @@ class Button extends Text{
 
             btn.pressed = true;
             btn.onPress(e);
+            #if html5
+            //no mouse_out event
+            _onRelease(e);
+            #end
         }//function _onPress()
 
 

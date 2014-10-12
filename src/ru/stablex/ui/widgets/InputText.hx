@@ -21,17 +21,19 @@ class InputText extends Text{
         #if !html5
             this.label.type = flash.text.TextFieldType.INPUT;
         #else
+            this.label.type = flash.text.TextFieldType.INPUT;
             //due to strange bug we need this hack
             this.addEventListener(Event.ADDED_TO_STAGE, function(e:Event){
-                this.label.type = flash.text.TextFieldType.INPUT;
-                Reflect.field(this.label, '__graphics').__surface.style.width = this.w + "px";
-                Reflect.field(this.label, '__graphics').__surface.style.height = this.h + "px";
-                Reflect.field(this.label, '__graphics').__surface.style.overflow = "hidden";
-                if( this.label.wordWrap ){
-                    Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "normal";
-                }else{
-                    Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "nowrap";
-                }
+                trace(this.label);
+                // this.label.type = flash.text.TextFieldType.INPUT;
+                // Reflect.field(this.label, '__graphics').__surface.style.width = this.w + "px";
+                // Reflect.field(this.label, '__graphics').__surface.style.height = this.h + "px";
+                // Reflect.field(this.label, '__graphics').__surface.style.overflow = "hidden";
+                // if( this.label.wordWrap ){
+                //     Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "normal";
+                // }else{
+                //     Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "nowrap";
+                // }
             });
         #end
 
@@ -51,17 +53,18 @@ class InputText extends Text{
         super.refresh();
 
         #if html5
-            Reflect.field(this.label, '__graphics').__surface.style.width = this.w + "px";
-            Reflect.field(this.label, '__graphics').__surface.style.height = this.h + "px";
-            if( this.label.wordWrap ){
-                Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "normal";
-            }else{
-                Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "nowrap";
-            }
+            trace(this.label);
+            // Reflect.field(this.label, '__graphics').__surface.style.width = this.w + "px";
+            // Reflect.field(this.label, '__graphics').__surface.style.height = this.h + "px";
+            // if( this.label.wordWrap ){
+            //     Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "normal";
+            // }else{
+            //     Reflect.field(this.label, '__graphics').__surface.style.whiteSpace = "nowrap";
+            // }
         #end
     }//function refresh()
 
-#if html5
+#if html6
     /**
     * Text getter
     * we need this hack to get actual text of textfield
@@ -73,7 +76,7 @@ class InputText extends Text{
                 : this.label.text
         );
     }//function get_text()
-	
+
 	/**
     * Text setter
     *
